@@ -3,128 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>电子签章改造 - 原型导航</title>
+  <title>电子签章改造 - 多甲方主体签署原型</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
+      height: 100%;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       background: #f0f2f5;
       color: #333;
       font-size: 14px;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    h1 {
-      font-size: 22px;
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: #262626;
-    }
-    .subtitle {
-      color: #888;
-      margin-bottom: 32px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
       overflow: hidden;
     }
-    .card-header {
-      padding: 16px 24px;
+    .app {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* 左侧目录 */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e8e8e8;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+    }
+    .sidebar-header {
+      padding: 20px 24px;
       border-bottom: 1px solid #f0f0f0;
+    }
+    .sidebar-title {
+      font-size: 16px;
       font-weight: 500;
       color: #262626;
-      background: #fafafa;
+      line-height: 1.4;
     }
-    .proto-list {
+    .sidebar-subtitle {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #999;
+    }
+    .nav-list {
       list-style: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 0;
     }
-    .proto-item {
+    .nav-item {
+      padding: 14px 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover {
+      background: #f6ffed;
+    }
+    .nav-item.active {
+      background: #e6f7ff;
+      border-left-color: #1890ff;
+    }
+    .nav-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #262626;
+      margin-bottom: 4px;
+    }
+    .nav-item.active .nav-name {
+      color: #1890ff;
+    }
+    .nav-desc {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.5;
+    }
+    .sidebar-footer {
+      padding: 14px 24px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* 右侧预览区 */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .toolbar {
+      height: 48px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 24px;
-      border-bottom: 1px solid #f0f0f0;
-      transition: background 0.2s;
+      padding: 0 20px;
+      flex-shrink: 0;
     }
-    .proto-item:last-child { border-bottom: none; }
-    .proto-item:hover { background: #f6ffed; }
-    .proto-info {
-      flex: 1;
-      margin-right: 16px;
-    }
-    .proto-name {
-      font-size: 15px;
+    .current-title {
       font-weight: 500;
       color: #262626;
-      margin-bottom: 6px;
     }
-    .proto-desc {
-      color: #888;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .proto-link {
+    .open-new {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      min-width: 88px;
-      height: 36px;
-      padding: 0 16px;
-      background: #1890ff;
-      color: #fff;
-      border-radius: 4px;
+      gap: 4px;
+      color: #1890ff;
       text-decoration: none;
-      font-size: 14px;
-      white-space: nowrap;
+      font-size: 13px;
     }
-    .proto-link:hover { background: #40a9ff; }
-    .footer {
-      margin-top: 24px;
-      color: #999;
-      font-size: 12px;
-      text-align: center;
+    .open-new:hover {
+      color: #40a9ff;
+    }
+    .iframe-wrap {
+      flex: 1;
+      position: relative;
+      background: #f0f2f5;
+    }
+    iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>电子签章改造 - 多甲方主体签署</h1>
-    <div class="subtitle">可交互原型导航</div>
-
-    <div class="card">
-      <div class="card-header">原型</div>
-      <ul class="proto-list">
-        <li class="proto-item">
-          <div class="proto-info">
-            <div class="proto-name">CSP 入网签署协议含五省二市选择</div>
-            <div class="proto-desc">完整版 CSP 入网签署协议页，含「展业范围是否含五省二市」选择、双主体确认弹窗、签约主体切换模拟。</div>
-          </div>
-          <a class="proto-link" href="csp-sign-protocol-with-scope-prototype.html">打开</a>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">电子签章改造<br>多甲方主体签署</div>
+        <div class="sidebar-subtitle">可交互原型目录</div>
+      </div>
+      <ul class="nav-list" id="nav-list">
+        <li class="nav-item active" data-src="csp-sign-protocol-with-scope-prototype.html" data-title="CSP 入网签署协议含五省二市选择">
+          <div class="nav-name">CSP 入网签署协议含五省二市选择</div>
+          <div class="nav-desc">完整版含「展业范围是否含五省二市」选择、双主体确认弹窗、签约主体切换模拟。</div>
         </li>
-        <li class="proto-item">
-          <div class="proto-info">
-            <div class="proto-name">CSP 入网签署协议-不含五省二市选择</div>
-            <div class="proto-desc">基于 CSP 入网签署协议页去掉五省二市选择框，保留签约主体切换模拟与立即签约跳转。</div>
-          </div>
-          <a class="proto-link" href="csp-sign-protocol-prototype.html">打开</a>
+        <li class="nav-item" data-src="csp-sign-protocol-prototype.html" data-title="CSP 入网签署协议-不含五省二市选择">
+          <div class="nav-name">CSP 入网签署协议-不含五省二市选择</div>
+          <div class="nav-desc">去掉五省二市选择框，保留签约主体切换模拟与立即签约跳转。</div>
         </li>
-        <li class="proto-item">
-          <div class="proto-info">
-            <div class="proto-name">机构入网信息填写页</div>
-            <div class="proto-desc">基于现有 UI 截图高保真还原，叠加「是否在五省二市作业」开关与合作协议签署提醒弹窗。</div>
-          </div>
-          <a class="proto-link" href="org-entry-info-prototype.html">打开</a>
+        <li class="nav-item" data-src="org-entry-info-prototype.html" data-title="机构入网信息填写页">
+          <div class="nav-name">机构入网信息填写页</div>
+          <div class="nav-desc">基于现有 UI 截图高保真还原，叠加「是否在五省二市作业」开关与合作协议签署提醒弹窗。</div>
         </li>
       </ul>
-    </div>
+      <div class="sidebar-footer">生成时间：2026-11-10</div>
+    </aside>
 
-    <div class="footer">生成时间：2026-11-10</div>
+    <main class="main">
+      <div class="toolbar">
+        <div class="current-title" id="current-title">CSP 入网签署协议含五省二市选择</div>
+        <a class="open-new" id="open-new" href="csp-sign-protocol-with-scope-prototype.html" target="_blank">↗ 新窗口打开</a>
+      </div>
+      <div class="iframe-wrap">
+        <iframe id="proto-frame" src="csp-sign-protocol-with-scope-prototype.html"></iframe>
+      </div>
+    </main>
   </div>
+
+  <script>
+    const navItems = document.querySelectorAll('.nav-item');
+    const frame = document.getElementById('proto-frame');
+    const currentTitle = document.getElementById('current-title');
+    const openNew = document.getElementById('open-new');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', function() {
+        navItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        const src = item.getAttribute('data-src');
+        const title = item.getAttribute('data-title');
+        frame.src = src;
+        currentTitle.textContent = title;
+        openNew.href = src;
+      });
+    });
+  </script>
 </body>
 </html>
