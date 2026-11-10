@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电子签章改造 - 原型导航</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #262626;
+    }
+    .subtitle {
+      color: #888;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #f0f0f0;
+      font-weight: 500;
+      color: #262626;
+      background: #fafafa;
+    }
+    .proto-list {
+      list-style: none;
+    }
+    .proto-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.2s;
+    }
+    .proto-item:last-child { border-bottom: none; }
+    .proto-item:hover { background: #f6ffed; }
+    .proto-info {
+      flex: 1;
+      margin-right: 16px;
+    }
+    .proto-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: #262626;
+      margin-bottom: 6px;
+    }
+    .proto-desc {
+      color: #888;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .proto-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 88px;
+      height: 36px;
+      padding: 0 16px;
+      background: #1890ff;
+      color: #fff;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .proto-link:hover { background: #40a9ff; }
+    .footer {
+      margin-top: 24px;
+      color: #999;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>电子签章改造 - 多甲方主体签署</h1>
+    <div class="subtitle">可交互原型与 PRD 交付导航</div>
+
+    <div class="card">
+      <div class="card-header">原型</div>
+      <ul class="proto-list">
+        <li class="proto-item">
+          <div class="proto-info">
+            <div class="proto-name">CSP 入网签署协议页</div>
+            <div class="proto-desc">含「展业范围是否含五省二市」选择、双主体确认弹窗、签约主体切换模拟。</div>
+          </div>
+          <a class="proto-link" href="csp-sign-protocol-prototype.html">打开</a>
+        </li>
+        <li class="proto-item">
+          <div class="proto-info">
+            <div class="proto-name">机构入网信息填写页</div>
+            <div class="proto-desc">基于现有 UI 截图高保真还原，叠加「是否在五省二市作业」开关与合作协议签署提醒弹窗。</div>
+          </div>
+          <a class="proto-link" href="org-entry-info-prototype.html">打开</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-header">PRD 交付版</div>
+      <ul class="proto-list">
+        <li class="proto-item">
+          <div class="proto-info">
+            <div class="proto-name">电子签章改造 - 多甲方主体签署 分层需求 PRD</div>
+            <div class="proto-desc">HTML 版 PRD，便于在线浏览与评审。</div>
+          </div>
+          <a class="proto-link" href="esign-multi-parta-split-prd.html">打开</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer">生成时间：2026-11-10</div>
+  </div>
+</body>
+</html>

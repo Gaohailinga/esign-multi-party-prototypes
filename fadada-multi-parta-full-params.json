@@ -1,0 +1,130 @@
+{
+  "appId": "tianque",
+  "bizNo": "multi-partner-fadada-001",
+  "channelType": "fadada",
+  "localDocuments": [
+    {
+      "documentKey": "contract1234561233",
+      "fileName": "随行付协议.pdf",
+      "fileBase64": "1"
+    },
+    {
+      "documentKey": "contract1234561234",
+      "fileName": "天阙协议.pdf",
+      "fileBase64": "1"
+    }
+  ],
+  "signature": {
+    "pageModify": "1",
+    "verifiedNotifyUrl": "https://example.com/fadada/verify-notify",
+    "customerIdentType": "1",
+    "verifiedWay": "0",
+    "personAuthFailAllowManualAudit": "0",
+    "verificationType": "1",
+    "mobileSignType": "0",
+    "readTime": "0",
+    "batchSignReadFlag": "0",
+    "isMiniProgram": "0",
+    "idPhotoOptional": "2",
+    "encryption": "0",
+    "pcHandSignature": "0",
+    "saveHandSignature": "0",
+    "signatureShowTime": "1",
+    "positionType": "1",
+    "signFlowConfig": {
+      "signFlowTitle": "多主体签署",
+      "notifyUrl": "https://example.com/fadada/sign-notify",
+      "redirectConfig": {
+        "redirectUrl": "https://example.com/fadada/return"
+      }
+    },
+    "signers": [
+      {
+        "signerType": 1,
+        "orgSignerInfo": {
+          "orgName": "测试企业有限公司1",
+          "orgInfo": {
+            "orgIDCardType": "CRED_ORG_USCC",
+            "orgIDCardNum": "91370828MA3TCWPN9M",
+            "legalRepName": "高海玲",
+            "legalRepIDCardNum": "150423200001310023"
+          },
+          "transactorInfo": {
+            "psnAccount": "17604861425",
+            "psnInfo": {
+              "psnName": "高海玲",
+              "psnIDCardNum": "150423200001310023",
+              "psnMobile": "17604861425"
+            }
+          }
+        },
+        "signFields": [
+          {
+            "localDocumentKey": "contract1234561233",
+            "normalSignFieldConfig": {
+              "autoSign": false,
+              "signFieldPosition": {
+                "positionPage": "0",
+                "positionX": 40,
+                "positionY": 40
+              }
+            }
+          },
+          {
+            "localDocumentKey": "contract1234561234",
+            "normalSignFieldConfig": {
+              "autoSign": false,
+              "signFieldPosition": {
+                "positionPage": "0",
+                "positionX": 40,
+                "positionY": 40
+              }
+            }
+          }
+        ]
+      },
+      {
+        "signerType": 1,
+        "customerId": "F00AB31B9FD8508061B172D777245677",
+        "signFields": [
+          {
+            "localDocumentKey": "contract1234561233",
+            "normalSignFieldConfig": {
+              "autoSign": true,
+              "assignedSealId": "91158",
+              "signFieldPosition": {
+                "positionPage": "0",
+                "positionX": 20,
+                "positionY": 20
+              }
+            }
+          }
+        ]
+      },
+      {
+        "signerType": 1,
+        "customerId": "949306808EEB2B0B854FB5EC847B8EFB",
+        "signFields": [
+          {
+            "localDocumentKey": "contract1234561234",
+            "normalSignFieldConfig": {
+              "autoSign": true,
+              "assignedSealId": "IDc2873a51-bdfb-4898-a5b3-eb6adef96299",
+              "signFieldPosition": {
+                "positionPage": "0",
+                "positionX": 20,
+                "positionY": 20
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "signUrl": {
+    "needLogin": false,
+    "operator": {
+      "psnAccount": "17604861425"
+    }
+  }
+}

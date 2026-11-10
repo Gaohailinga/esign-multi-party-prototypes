@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>机构入网信息填写页 - 高保真原型</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .page-header {
+      max-width: 1200px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-header h1 {
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .mock-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      border-radius: 4px;
+    }
+    .mock-control .label {
+      font-weight: 500;
+      color: #333;
+    }
+    .mock-control .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .mock-control .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .mock-control .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #d9d9d9;
+      border-radius: 24px;
+      transition: 0.2s;
+    }
+    .mock-control .slider::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .mock-control .switch input:checked + .slider {
+      background: #52c41a;
+    }
+    .mock-control .switch input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+
+    .image-card {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+      text-align: center;
+    }
+    .image-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .hint {
+      max-width: 1200px;
+      margin: 12px auto 0;
+      color: #888;
+      font-size: 13px;
+    }
+
+    /* 弹窗 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff;
+      width: 560px;
+      max-width: 90%;
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      overflow: hidden;
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+    }
+    .modal-body {
+      padding: 24px;
+      color: #555;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+    .modal-body p { margin-bottom: 12px; }
+    .modal-body p:last-child { margin-bottom: 0; }
+    .modal-footer {
+      padding: 12px 24px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .btn-default {
+      min-width: 88px;
+      height: 36px;
+      padding: 0 16px;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      color: #555;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-default:hover { border-color: #1890ff; color: #1890ff; }
+    .btn-confirm {
+      min-width: 120px;
+      height: 36px;
+      padding: 0 16px;
+      background: #1890ff;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-confirm:hover { background: #40a9ff; }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>机构入网信息填写页（高保真原型）</h1>
+    <div class="mock-control">
+      <span class="label">模拟：勾选“是否在五省二市作业”</span>
+      <label class="switch">
+        <input type="checkbox" id="scope-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="image-card">
+    <img src="org-entry-info.png" alt="机构入网信息填写 UI">
+  </div>
+
+  <div class="hint">打开右上角开关，即可模拟勾选“是否在五省二市作业”后触发的合作协议签署提醒弹窗。</div>
+
+  <!-- 弹窗：合作协议签署提醒 -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">合作协议签署提醒</div>
+      <div class="modal-body">
+        <p>尊敬的合作伙伴：</p>
+        <p>若您将在五省二市【黑龙江、吉林、辽宁、浙江、福建（厦门除外）地区】作业，为完善上述地区商户支付能力，明确双方权责、保障贵机构合法权益，您在与随行付支付有限公司签约的同时，需同步与北京天阙科技有限公司签署合作协议。</p>
+        <p>请点击确认前往签署。期待与您开展新的合作篇章，大展宏图，感谢您一直以来的理解与支持！</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-default" id="btn-cancel">取消</button>
+        <button class="btn-confirm" id="btn-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const scopeToggle = document.getElementById('scope-toggle');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const btnCancel = document.getElementById('btn-cancel');
+    const btnConfirm = document.getElementById('btn-confirm');
+
+    scopeToggle.addEventListener('change', function() {
+      if (this.checked) {
+        modalOverlay.classList.add('show');
+      }
+    });
+
+    btnCancel.addEventListener('click', function() {
+      modalOverlay.classList.remove('show');
+      scopeToggle.checked = false;
+    });
+
+    btnConfirm.addEventListener('click', function() {
+      alert('即将跳转双主体电子签章签署页面…');
+      modalOverlay.classList.remove('show');
+    });
+
+    modalOverlay.addEventListener('click', function(e) {
+      if (e.target === modalOverlay) {
+        modalOverlay.classList.remove('show');
+        scopeToggle.checked = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
