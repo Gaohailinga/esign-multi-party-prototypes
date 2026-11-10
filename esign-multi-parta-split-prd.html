@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电子签章改造-多甲方主体签署-分层需求PRD</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; line-height: 1.7; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1f2329; }
+h1 { font-size: 28px; border-bottom: 2px solid #3370ff; padding-bottom: 10px; }
+h2 { font-size: 22px; margin-top: 36px; border-left: 4px solid #3370ff; padding-left: 12px; }
+h3 { font-size: 18px; margin-top: 28px; }
+h4 { font-size: 15px; margin-top: 22px; color: #333; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+th, td { border: 1px solid #dee0e3; padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: #f5f6f7; font-weight: 600; }
+code { background: #f2f3f5; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, monospace; font-size: 13px; }
+pre { background: #f2f3f5; padding: 12px; border-radius: 6px; overflow-x: auto; }
+pre code { background: transparent; padding: 0; }
+blockquote { border-left: 4px solid #3370ff; margin: 16px 0; padding: 8px 16px; background: #f5f8ff; color: #454545; }
+img { max-width: 100%; height: auto; border: 1px solid #e5e6eb; border-radius: 4px; margin: 12px 0; }
+ul, ol { padding-left: 24px; }
+li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<h1 id="e-prd">电子签章改造（e签宝 / 法大大）—— 多我司主体签署需求 PRD</h1>
+<p><strong>术语约定</strong>：「甲方」即「我司主体」（<code>00 随行付</code> / <code>01 天阙</code> / <code>02 重庆鑫联</code>）。</p>
+<p><strong>范围声明</strong>：坐标、回调、查询、下载、撤销、封装层映射、架构接口均沿用既有逻辑，本文不展开。</p>
+<hr />
+<h2 id="1">1. 背景与目标</h2>
+<h3 id="11">1.1 背景</h3>
+<p>电子签章现状一次签署流程只能指定一个我司主体。机构入网场景中同一批协议的甲方主体可能不同（随行付、天阙），业务线只能拆成多个签约流程分别发起，签署体验割裂、状态对账成本高。</p>
+<h3 id="12">1.2 目标</h3>
+<ul>
+<li>一次签署流程内支持多个我司主体（甲方）签署。</li>
+<li>业务层以「我司主体编码」为最小改动点，其余字段尽量复用既有结构。</li>
+<li>支持随行付/天阙双主体同时签署，也兼容单主体存量流程。</li>
+</ul>
+<hr />
+<h2 id="2">2. 推荐方案</h2>
+<p><strong>方案：签约文件逐份标注我司主体 + 签署方按主体分节点传入</strong></p>
+<ul>
+<li>每份签约文件必须携带「我司主体」，明确文件归属。</li>
+<li>每个甲方签署方节点同样携带「我司主体」，其「签署区信息」只绑定同主体文件。</li>
+<li>业务层按主体分组后顺序传入文件；同主体文件连续排列。</li>
+</ul>
+<p><strong>推荐理由</strong>：与封装层透传逻辑一致（每个甲方的签署区绑定自己的协议文件），归属明确、校验简单、可扩展。</p>
+<hr />
+<h2 id="3-csp">3. 业务触发场景：机构入网协议（CSP / 掌中宝）</h2>
+<blockquote>
+<p>适用协议类型：机构入网协议。当机构属于「五省二市作业」范围时，需要同时签署随行付、天阙两份主体协议。</p>
+</blockquote>
+<p>三个方案在「何时、在哪确认五省二市」上存在差异，推荐方案需业务侧结合掌中宝改造成本与用户体验最终确认。核心差异如下：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>五省二市确认时机</th>
+<th>确认页面</th>
+<th>签约主体选择</th>
+<th>电子签约页处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>方案一：机构填写入网资料时确认</strong></td>
+<td>CSP 机构资料填写节点</td>
+<td>CSP 机构资料页</td>
+<td>BD 审核节点展示可选主体</td>
+<td>按 BD 选择渲染；随行付时展示五省二市单选，天阙时不展示</td>
+</tr>
+<tr>
+<td><strong>方案二：掌中宝 BD 审核时确认</strong></td>
+<td>BD 审核节点</td>
+<td>掌中宝 BD 审核页</td>
+<td>与五省二市确认合并</td>
+<td>按 BD 选择渲染；随行付时展示五省二市单选，天阙时不展示</td>
+</tr>
+<tr>
+<td><strong>方案三：机构协议签约时确认</strong></td>
+<td>CSP 电子签约节点</td>
+<td>CSP 机构电子签约页</td>
+<td>BD 审核节点（或本页）</td>
+<td>在签约页首次必填五省二市；选「是」弹窗，选「否」直接跳转</td>
+</tr>
+</tbody>
+</table>
+<h3 id="31-csp">3.1 方案一：CSP 机构资料填写节点</h3>
+<p>机构在 CSP 填写入网资料时即确认是否属于五省二市作业范围。</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字段名称</td>
+<td>是否在五省二市作业</td>
+</tr>
+<tr>
+<td>控件类型</td>
+<td>开关，默认「否」；勾选后可取消</td>
+</tr>
+<tr>
+<td>提示说明</td>
+<td>长按/点击小叹号，弹窗展示五省二市具体省市范围（文案由产品/法务配置）</td>
+</tr>
+<tr>
+<td>勾选后交互</td>
+<td>页面弹窗，标题「合作协议签署提醒」，正文：「尊敬的合作伙伴：若您将在五省二市【黑龙江、吉林、辽宁、浙江、福建（厦门除外）地区】作业，为完善上述地区商户支付能力，明确双方权责、保障贵机构合法权益，您在与随行付支付有限公司签约的同时，需同步与北京天阙科技有限公司签署合作协议。请点击签约链接完成协议签署。期待与您开展新的合作篇章，大展宏图，感谢您一直以来的理解与支持！」，按钮「取消 / 确认并前往签约」。</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="方案一：勾选「是」后弹窗" src="prd_images/word/media/image1.png" /></p>
+<p><img alt="方案一：勾选「否」不弹窗" src="prd_images/word/media/image2.png" /></p>
+<h3 id="32-bd">3.2 方案二：掌中宝 BD 审核节点</h3>
+<p>BD 在掌中宝审核时确认五省二市，并同步完成「签约主体」选择。只有确认「是」后，才展示「随行付（00）」选项；确认「否」时仅展示「天阙（01）」。</p>
+<table>
+<thead>
+<tr>
+<th>五省二市</th>
+<th>BD 选择</th>
+<th>生成协议</th>
+<th>甲方主体</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>是</td>
+<td>随行付（00）</td>
+<td>随行付协议 + 天阙协议</td>
+<td>00、01</td>
+</tr>
+<tr>
+<td>是</td>
+<td>天阙（01）</td>
+<td>天阙协议</td>
+<td>01</td>
+</tr>
+<tr>
+<td>否</td>
+<td>天阙（01）仅可选</td>
+<td>天阙协议</td>
+<td>01</td>
+</tr>
+<tr>
+<td>否</td>
+<td>随行付（00）不可选/选择不生效</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>组合场景说明</strong>：若 CSP 未勾选五省二市，BD 即使误选「随行付」，提交时按「天阙（01）」处理；掌中宝侧可前端置灰不可选，或后端强制覆盖为 01。</p>
+</blockquote>
+<p><img alt="方案二：掌中宝 BD 审核页" src="prd_images/word/media/image3.png" /></p>
+<h3 id="33-csp">3.3 方案三：CSP 机构电子签约页确认</h3>
+<p>方案三将「五省二市」确认时机后移至 CSP 机构电子签约页：</p>
+<ul>
+<li><strong>页面</strong>：CSP 机构电子签约页。</li>
+<li><strong>字段</strong>：新增「展业范围是否含五省二市」单选，默认未选中，必填。</li>
+<li><strong>选择「是」</strong>：点击「立即签约」后弹出「合作协议签署提醒」弹窗，点击「确认并前往签约」跳转封装层。</li>
+<li><strong>选择「否」</strong>：点击「立即签约」后直接跳转封装层，不弹窗。</li>
+<li><strong>未选择时点击「立即签约」</strong>：提示「请先选择“展业范围是否含五省二市”后再进行签约」。</li>
+<li>弹窗文案同 3.1 节。</li>
+</ul>
+<p><img alt="方案三：CSP 机构电子签约页确认" src="prd_images/word/media/image6.png" /></p>
+<blockquote>
+<p><strong>与方案一、二的差异</strong>：方案一、二在更早节点已确认五省二市，电子签约页仅做最终确认/展示；方案三则在电子签约页首次确认，对 CSP 页面改动最大，但掌中宝侧无需新增五省二市选项。</p>
+</blockquote>
+<h3 id="34">3.4 电子签约页公共跳转规则</h3>
+<p>方案一、二中，CSP 机构电子签约页均根据掌中宝 BD 审核节点最终选择的「签约主体」渲染：</p>
+<table>
+<thead>
+<tr>
+<th>BD 审核选择签约主体</th>
+<th>电子签约页展示内容</th>
+<th>点击「立即签约」行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>随行付（00）</td>
+<td>展示「展业范围是否含五省二市」单选（必填）</td>
+<td>选「是」→ 弹双主体确认窗 → 点「确认并前往签约」跳转封装层；选「否」→ 不弹窗，直接跳转封装层</td>
+</tr>
+<tr>
+<td>天阙（01）</td>
+<td>不展示「展业范围是否含五省二市」</td>
+<td>直接跳转封装层</td>
+</tr>
+</tbody>
+</table>
+<p><strong>说明</strong>：
+- 电子签约页以 BD 审核节点的最终选择为准。
+- 仅当 BD 选择「随行付」时，才需要机构在签约页再次确认是否含五省二市；选择「天阙」时沿用单主体流程。
+- 选择「是」后弹窗文案同 3.1 节。</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字段名称</td>
+<td>展业范围是否含五省二市</td>
+</tr>
+<tr>
+<td>控件类型</td>
+<td>单选（是 / 否），默认未选中</td>
+</tr>
+<tr>
+<td>必填校验</td>
+<td>未选择时点「立即签约」，提示「请先选择“展业范围是否含五省二市”后再进行签约」</td>
+</tr>
+<tr>
+<td>选择「是」后交互</td>
+<td>弹窗，标题「合作协议签署提醒」，按钮「取消 / 确认并前往签约」；点击确认后跳转封装层</td>
+</tr>
+<tr>
+<td>选择「否」后交互</td>
+<td>不弹窗，直接跳转封装层</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="电子签约页：随行付（00）选择「是」弹窗" src="prd_images/word/media/image4.png" /></p>
+<p><img alt="电子签约页：天阙（01）单主体直接跳转" src="prd_images/word/media/image5.png" /></p>
+<h3 id="35">3.5 与签约接口的映射</h3>
+<ul>
+<li>CSP / 掌中宝最终调用「创建签约并获取链接」发起签署。</li>
+<li>「勾选 + BD 选随行付」对应一次签约流程含 2 个甲方主体；「未勾选 或 BD 选天阙」对应单甲方流程。</li>
+</ul>
+<h3 id="36">3.6 边界与配置说明</h3>
+<ul>
+<li>五省二市范围文案、弹窗文案建议配置在运营后台，避免硬编码。</li>
+<li>掌中宝需在 BD 提交前校验：选择随行付时，机构必须同时满足两套协议的签署前置条件。</li>
+<li>BD 提交前可修改签约主体；工单退回后重新进入审核节点可重新选择。</li>
+<li>若后续新增第三个甲方主体（如 02 重庆鑫联），掌中宝选择逻辑与接口校验需同步扩展。</li>
+</ul>
+<hr />
+<h2 id="4">4. 主流程图</h2>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor M as 商户
+    participant CSP as CSP机构资料页
+    participant BD as 掌中宝BD审核
+    participant SYS as 业务系统
+    participant ES as 电子签章封装层
+    participant CH as e签宝/法大大
+
+    M-&gt;&gt;CSP: 填写机构资料
+    alt 勾选五省二市
+        CSP-&gt;&gt;CSP: 弹窗提示双主体协议
+        CSP-&gt;&gt;SYS: 提交资料（isFiveProvinces=true）
+        SYS-&gt;&gt;BD: 生成BD审核工单
+        BD-&gt;&gt;BD: 展示「签约主体」选择（00/01）
+        alt BD选随行付
+            BD-&gt;&gt;SYS: 提交（subjects=[00,01]）
+        else BD选天阙
+            BD-&gt;&gt;SYS: 提交（subjects=[01]）
+        end
+    else 未勾选
+        CSP-&gt;&gt;SYS: 提交资料（isFiveProvinces=false）
+        SYS-&gt;&gt;BD: 生成BD审核工单
+        BD-&gt;&gt;SYS: 提交（subjects=[01]）
+    end
+    SYS-&gt;&gt;SYS: 按主体分组生成文件与签署区
+    SYS-&gt;&gt;SYS: 校验主体/文件/印章配置
+    alt 校验失败
+        SYS--&gt;&gt;BD: 返回明确错误提示，停留审核页
+    else 校验通过
+        SYS-&gt;&gt;ES: 创建签约并获取链接
+        ES-&gt;&gt;CH: 按渠道发起签署
+        alt 渠道返回异常
+            CH--&gt;&gt;ES: 错误码（1004/1435002/...）
+            ES--&gt;&gt;SYS: 透传业务化提示
+            SYS--&gt;&gt;BD: 展示错误，可修正后重试
+        else 渠道成功
+            CH--&gt;&gt;ES: 返回签署链接/流程ID
+            ES--&gt;&gt;SYS: 返回签约链接
+            SYS--&gt;&gt;M: 推送签署链接
+        end
+    end
+</code></pre>
+<hr />
+<h2 id="5">5. 对接封装层创建签约</h2>
+<p>CSP / 掌中宝不直接对接 e签宝/法大大，而是通过调用内部电子签章封装层的「创建签约并获取链接」接口完成签署。本章说明多主体场景下，相较于单主体存量调用，需要调整哪些参数、字段如何取值、以及传值规则。</p>
+<h3 id="51">5.1 接口说明</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接口路径</td>
+<td><code>POST {封装层}/sign-flow/create</code>（路径沿用既有接口，以实际封装层地址为准）</td>
+</tr>
+<tr>
+<td>调用方</td>
+<td>CSP / 掌中宝等业务系统</td>
+</tr>
+<tr>
+<td>服务方</td>
+<td>电子签章封装层，负责将「我司主体」映射为对应渠道的账号、印章，并向 e签宝/法大大发起真实请求</td>
+</tr>
+<tr>
+<td>核心变化</td>
+<td>多主体签署时，必须在「签约文件」和「签署方信息」中显式传入「我司主体」，否则封装层无法识别文件归属与签署方主体</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52">5.2 新增/变更字段</h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位置</th>
+<th>必填</th>
+<th>类型</th>
+<th>取值</th>
+<th>变更</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>我司主体</td>
+<td>签约文件[].我司主体</td>
+<td>是</td>
+<td>String</td>
+<td><code>00</code> 随行付 / <code>01</code> 天阙 / <code>02</code> 重庆鑫联</td>
+<td>新增</td>
+<td>指定该份协议的甲方归属；<strong>逐文件必传</strong>，无全局默认值</td>
+</tr>
+<tr>
+<td>我司主体</td>
+<td>签署方信息[].我司主体</td>
+<td>是</td>
+<td>String</td>
+<td><code>00</code> / <code>01</code> / <code>02</code></td>
+<td>新增</td>
+<td>标识该签署方代表的我司主体；甲方静默签、乙方手动签均需传入</td>
+</tr>
+<tr>
+<td>我司主体</td>
+<td>签署区信息[].我司主体</td>
+<td>否</td>
+<td>String</td>
+<td><code>00</code> / <code>01</code> / <code>02</code></td>
+<td>预留</td>
+<td>当前阶段不实现；未来同协议多位置落章时使用</td>
+</tr>
+<tr>
+<td>渠道类型</td>
+<td>渠道类型</td>
+<td>是</td>
+<td>String</td>
+<td><code>esign</code> / <code>fadada</code></td>
+<td>限制</td>
+<td>多主体场景当前仅支持 <code>esign</code>；<code>fadada</code> 一次流程仅支持单一甲方</td>
+</tr>
+<tr>
+<td>文件顺序</td>
+<td>签约文件数组顺序</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>约束</td>
+<td>同主体文件必须连续排列，不同主体分组传入</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>注：应用标识、业务单号、签约文件内容/名称、签署区坐标、乙方企业/经办人信息、签约链接配置 等其他字段均沿用既有逻辑，本章不再赘述。</p>
+</blockquote>
+<h3 id="53">5.3 字段说明与传值规则</h3>
+<h4 id="531">5.3.1 我司主体编码</h4>
+<ul>
+<li><strong>传值规则</strong>：业务系统根据方案一/二/三最终确认的签约主体，将同主体文件与签署方标记为同一编码。取值：<code>00</code> 随行付 / <code>01</code> 天阙 / <code>02</code> 重庆鑫联。</li>
+<li><strong>校验规则</strong>：必填，取值 ∈ <code>{00,01,02}</code>；一次流程去重后最多支持 8 个我司主体。</li>
+</ul>
+<h4 id="532">5.3.2 签约文件</h4>
+<ul>
+<li>每份协议必须携带「我司主体」，明确该份协议的甲方归属。</li>
+<li>业务层需按主体分组后顺序传入，<strong>同主体文件必须连续</strong>，示例顺序：<code>[00文件1, 00文件2, 01文件1]</code>。</li>
+<li>多主体场景下，不同主体的协议文件可共用同一个业务单号，一次调用生成完整签署流程。</li>
+</ul>
+<h4 id="533">5.3.3 签署方信息</h4>
+<ul>
+<li>每个甲方签署方节点必须携带「我司主体」，其「签署区信息」只能绑定同主体文件。</li>
+<li><strong>甲方静默签</strong>（<code>是否自动落章=true</code>）：只传「渠道企业账号ID」（<code>customerId</code> / <code>orgId</code>），不传企业/经办人信息。</li>
+<li><strong>乙方手动签</strong>（<code>是否自动落章=false</code>）：传企业名称、统一社会信用代码、经办人姓名、经办人手机号等，不传「渠道企业账号ID」。</li>
+<li><strong>e签宝静默签特殊处理</strong>：封装层会过滤掉企业/经办人信息，仅保留「渠道企业账号ID」，避免渠道返回 <code>1435002</code>（机构自动签署只允许传账号ID）。</li>
+</ul>
+<h4 id="534">5.3.4 签署区信息</h4>
+<ul>
+<li>「关联协议外部ID」必须指向同主体文件，即该文件对应的「我司主体」与当前签署方的「我司主体」一致。</li>
+<li>签章坐标规则保持既有逻辑：e签宝页码从 1 开始，法大大从 0 开始。</li>
+<li>e签宝指定印章传「印章ID」；法大大通道由封装层按「渠道企业账号ID」取默认章。</li>
+</ul>
+<h4 id="535">5.3.5 渠道类型</h4>
+<ul>
+<li>多主体流程当前强制走 e签宝。</li>
+<li>若请求命中法大大且包含多个「我司主体」，封装层应拦截报错，或业务层前置校验。</li>
+</ul>
+<h4 id="536">5.3.6 处理规则</h4>
+<ol>
+<li><strong>主体来源唯一</strong>：甲方主体一律由「签约文件[].我司主体」逐文件指定，无全局默认值。</li>
+<li><strong>按我司主体聚合生成多个甲方签署方</strong>：同一主体的文件与签章区聚合为一个甲方签署方，<code>是否自动落章=true</code>，印章ID取该主体配置值。</li>
+<li><strong>签署页文件展示顺序由业务层传参顺序保证</strong>：业务层按固定主体顺序（先 <code>00 随行付</code>，再 <code>01 天阙</code>，最后 <code>02 重庆鑫联</code>）传入签约文件；封装层按传入顺序透传生成渠道文件顺序，不做重排。</li>
+<li><strong>乙方签署方</strong>按存量逻辑生成，排在甲方签署方之后。</li>
+</ol>
+<h3 id="54">5.4 请求示例与映射结果</h3>
+<h4 id="541">5.4.1 业务层入参示例</h4>
+<p>一次批量签署 4 份协议、2 个甲方（随行付、天阙）、1 个乙方：</p>
+<pre><code class="language-json">{
+  &quot;应用标识&quot;: &quot;tianque&quot;,
+  &quot;业务单号&quot;: &quot;multi-partner-esign-003&quot;,
+  &quot;渠道类型&quot;: &quot;esign&quot;,
+  &quot;签约文件&quot;: [
+    { &quot;协议外部ID&quot;: &quot;A1001&quot;, &quot;协议模板&quot;: &quot;合作服务协议&quot;, &quot;文件路径&quot;: &quot;/files/A1001_sxf.pdf&quot;, &quot;我司主体&quot;: &quot;00&quot; },
+    { &quot;协议外部ID&quot;: &quot;A1002&quot;, &quot;协议模板&quot;: &quot;补充协议&quot;, &quot;文件路径&quot;: &quot;/files/A1002_sxf.pdf&quot;, &quot;我司主体&quot;: &quot;00&quot; },
+    { &quot;协议外部ID&quot;: &quot;B1001&quot;, &quot;协议模板&quot;: &quot;合作服务协议&quot;, &quot;文件路径&quot;: &quot;/files/B1001_tq.pdf&quot;, &quot;我司主体&quot;: &quot;01&quot; },
+    { &quot;协议外部ID&quot;: &quot;B1002&quot;, &quot;协议模板&quot;: &quot;补充协议&quot;, &quot;文件路径&quot;: &quot;/files/B1002_tq.pdf&quot;, &quot;我司主体&quot;: &quot;01&quot; }
+  ],
+  &quot;签署方信息&quot;: {
+    &quot;签署方类型&quot;: &quot;01&quot;,
+    &quot;签约人类型&quot;: &quot;01&quot;,
+    &quot;企业名称&quot;: &quot;xxx商户&quot;,
+    &quot;统一社会信用代码&quot;: &quot;9135xxxx&quot;,
+    &quot;经办人姓名&quot;: &quot;张三&quot;,
+    &quot;经办人手机号&quot;: &quot;13800138000&quot;
+  },
+  &quot;签署区信息&quot;: [
+    { &quot;协议外部ID&quot;: &quot;A1001&quot;, &quot;页码&quot;: &quot;1&quot;, &quot;坐标X&quot;: &quot;300&quot;, &quot;坐标Y&quot;: &quot;200&quot; },
+    { &quot;协议外部ID&quot;: &quot;A1002&quot;, &quot;页码&quot;: &quot;1&quot;, &quot;坐标X&quot;: &quot;300&quot;, &quot;坐标Y&quot;: &quot;200&quot; },
+    { &quot;协议外部ID&quot;: &quot;B1001&quot;, &quot;页码&quot;: &quot;1&quot;, &quot;坐标X&quot;: &quot;300&quot;, &quot;坐标Y&quot;: &quot;200&quot; },
+    { &quot;协议外部ID&quot;: &quot;B1002&quot;, &quot;页码&quot;: &quot;1&quot;, &quot;坐标X&quot;: &quot;300&quot;, &quot;坐标Y&quot;: &quot;200&quot; }
+  ],
+  &quot;签约链接配置&quot;: {
+    &quot;是否需要登录&quot;: false,
+    &quot;经办人手机号&quot;: &quot;17604861425&quot;
+  }
+}
+</code></pre>
+<blockquote>
+<p><strong>传参顺序即展示顺序</strong>：上述示例业务层按随行付→天阙顺序传入，签署页按该顺序展示。<strong>业务层需按固定主体顺序（先 <code>00</code> 后 <code>01</code> 再 <code>02</code>）传参</strong>；若业务层乱序传入，签署页将按业务层传入顺序展示，封装层不做重排。</p>
+</blockquote>
+<h4 id="542">5.4.2 常见错误传参</h4>
+<table>
+<thead>
+<tr>
+<th>错误示例</th>
+<th>问题</th>
+<th>正确做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>漏传某份文件的「我司主体」（误以为还有全局兜底）</td>
+<td>校验不通过，创建失败</td>
+<td>每份文件都必须指定「我司主体」，无全局默认值</td>
+</tr>
+<tr>
+<td>同一「协议外部ID」下，不同签章区传了不同「我司主体」</td>
+<td>当前阶段会触发校验失败</td>
+<td>如需同协议多甲方，走预留的「签署区维度我司主体」方案；否则同一协议只传一个甲方</td>
+</tr>
+<tr>
+<td>把我司主体编码写成中文「随行付」</td>
+<td>字段类型错误，校验不通过</td>
+<td>使用编码 <code>00</code> / <code>01</code> / <code>02</code></td>
+</tr>
+<tr>
+<td>多主体场景仍走法大大渠道</td>
+<td>渠道不支持，创建失败</td>
+<td>多主体仅支持 e签宝；法大大保持单主体调用</td>
+</tr>
+</tbody>
+</table>
+<h4 id="543">5.4.3 封装层映射结果示例</h4>
+<p>上述请求示例传入后，封装层会生成如下 e签宝结构：</p>
+<pre><code class="language-json">{
+  &quot;docs&quot;: [
+    { &quot;fileId&quot;: &quot;F1&quot;, &quot;fileName&quot;: &quot;合作服务协议-随行付.pdf&quot;, &quot;order&quot;: 1 },
+    { &quot;fileId&quot;: &quot;F2&quot;, &quot;fileName&quot;: &quot;补充协议-随行付.pdf&quot;, &quot;order&quot;: 2 },
+    { &quot;fileId&quot;: &quot;F3&quot;, &quot;fileName&quot;: &quot;合作服务协议-天阙.pdf&quot;, &quot;order&quot;: 3 },
+    { &quot;fileId&quot;: &quot;F4&quot;, &quot;fileName&quot;: &quot;补充协议-天阙.pdf&quot;, &quot;order&quot;: 4 }
+  ],
+  &quot;signers&quot;: [
+    {
+      &quot;signerType&quot;: 1,
+      &quot;signFields&quot;: [
+        { &quot;fileId&quot;: &quot;F1&quot;, &quot;normalSignFieldConfig&quot;: { &quot;autoSign&quot;: true, &quot;assignedSealId&quot;: &quot;{随行付印章ID}&quot;, &quot;signFieldPosition&quot;: { &quot;positionPage&quot;: &quot;1&quot;, &quot;positionX&quot;: 300, &quot;positionY&quot;: 200 } } },
+        { &quot;fileId&quot;: &quot;F2&quot;, &quot;normalSignFieldConfig&quot;: { &quot;autoSign&quot;: true, &quot;assignedSealId&quot;: &quot;{随行付印章ID}&quot;, &quot;signFieldPosition&quot;: { &quot;positionPage&quot;: &quot;1&quot;, &quot;positionX&quot;: 300, &quot;positionY&quot;: 200 } } }
+      ]
+    },
+    {
+      &quot;signerType&quot;: 1,
+      &quot;signFields&quot;: [
+        { &quot;fileId&quot;: &quot;F3&quot;, &quot;normalSignFieldConfig&quot;: { &quot;autoSign&quot;: true, &quot;assignedSealId&quot;: &quot;{天阙印章ID}&quot;, &quot;signFieldPosition&quot;: { &quot;positionPage&quot;: &quot;1&quot;, &quot;positionX&quot;: 300, &quot;positionY&quot;: 200 } } },
+        { &quot;fileId&quot;: &quot;F4&quot;, &quot;normalSignFieldConfig&quot;: { &quot;autoSign&quot;: true, &quot;assignedSealId&quot;: &quot;{天阙印章ID}&quot;, &quot;signFieldPosition&quot;: { &quot;positionPage&quot;: &quot;1&quot;, &quot;positionX&quot;: 300, &quot;positionY&quot;: 200 } } }
+      ]
+    },
+    {
+      &quot;signerType&quot;: 1,
+      &quot;orgSignerInfo&quot;: { &quot;orgName&quot;: &quot;xxx商户&quot;, &quot;orgInfo&quot;: {}, &quot;transactorInfo&quot;: {} },
+      &quot;signFields&quot;: [
+        { &quot;fileId&quot;: &quot;F1&quot;, &quot;normalSignFieldConfig&quot;: { &quot;autoSign&quot;: false, &quot;signFieldPosition&quot;: { &quot;positionPage&quot;: &quot;1&quot;, &quot;positionX&quot;: 100, &quot;positionY&quot;: 200 } } }
+      ]
+    }
+  ]
+}
+</code></pre>
+<h3 id="55">5.5 校验规则</h3>
+<table>
+<thead>
+<tr>
+<th>校验项</th>
+<th>规则</th>
+<th>拦截提示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>我司主体必传且合法</td>
+<td>逐文件、逐签署方校验已传且取值 ∈ {00,01,02}</td>
+<td>「签约文件[{序号}]未指定我司主体」 / 「我司主体取值不合法，仅支持00随行付/01天阙/02重庆鑫联」</td>
+</tr>
+<tr>
+<td>甲方数量上限</td>
+<td>去重后我司主体数 ≤ 8</td>
+<td>「一次签约流程最多支持8个我司主体」</td>
+</tr>
+<tr>
+<td>印章/账号配置</td>
+<td>每个我司主体的印章ID、渠道企业账号ID 必须已配置</td>
+<td>「主体[{主体名}]的电子印章/账号未配置，请联系运营」</td>
+</tr>
+<tr>
+<td>签署方总数</td>
+<td>甲方数 + 乙方数 ≤ 10（e签宝上限）</td>
+<td>「签署方数量超出上限」</td>
+</tr>
+<tr>
+<td>签署区总数</td>
+<td>全流程 ≤ 30 组（沿用）</td>
+<td>「最多传入30组签署区信息」</td>
+</tr>
+<tr>
+<td>文件未按主体连续传入</td>
+<td>同主体文件必须连续排列</td>
+<td>「同一主体的文件需连续传入」</td>
+</tr>
+<tr>
+<td>签署方主体与文件主体不匹配</td>
+<td>签署区关联的文件主体须与签署方主体一致</td>
+<td>「签署方主体与文件主体不一致」</td>
+</tr>
+</tbody>
+</table>
+<h3 id="56">5.6 返回与查询改造</h3>
+<h4 id="561">5.6.1 返回参数（不变）</h4>
+<table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>签署流程ID</td>
+<td>String</td>
+<td>封装层流程 ID</td>
+</tr>
+<tr>
+<td>签署链接</td>
+<td>String</td>
+<td>签署信息确认页 URL</td>
+</tr>
+</tbody>
+</table>
+<h4 id="562">5.6.2 查询与回调改造（小改造）</h4>
+<table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>签署方信息[].我司主体</td>
+<td>String</td>
+<td>签署方为我司时返回，多个甲方返回多组；取值 00/01/02</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>业务线可用于按主体归档、对账及追溯。</p>
+</blockquote>
+<hr />
+<h2 id="6">6. 异常处理</h2>
+<h3 id="61">6.1 入参校验类（业务层拦截）</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>提示</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主体未传</td>
+<td>「签署方信息未指定我司主体」</td>
+<td>拦截，返回创建失败</td>
+</tr>
+<tr>
+<td>主体取值非法</td>
+<td>「我司主体取值不合法，仅支持00随行付/01天阙/02重庆鑫联」</td>
+<td>拦截</td>
+</tr>
+<tr>
+<td>主体数超限</td>
+<td>「一次签约流程最多支持8个我司主体」</td>
+<td>拦截</td>
+</tr>
+<tr>
+<td>文件未按主体连续传入</td>
+<td>「同一主体的文件需连续传入」</td>
+<td>拦截</td>
+</tr>
+<tr>
+<td>签署方主体与文件主体不匹配</td>
+<td>「签署方主体与文件主体不一致」</td>
+<td>拦截</td>
+</tr>
+<tr>
+<td>印章/账号未配置</td>
+<td>「主体[XX]的电子印章/账号未配置，请联系运营」</td>
+<td>拦截</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62">6.2 运行时异常（渠道返回）</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>渠道错误</th>
+<th>业务层处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同一 bizNo 重复发起</td>
+<td>法大大/封装层 <code>Duplicate entry ... t_biz_no_app_un</code></td>
+<td>幂等返回已创建流程的签署链接，不重复创建</td>
+</tr>
+<tr>
+<td>法大大签章坐标为空</td>
+<td><code>1004</code></td>
+<td>透传「签章坐标不能为空，请检查坐标配置」</td>
+</tr>
+<tr>
+<td>e签宝盖章位置超出文件范围</td>
+<td><code>1435002</code></td>
+<td>透传「签章坐标超出文件范围，请检查页码/坐标」</td>
+</tr>
+<tr>
+<td>e签宝静默签传 orgSignerInfo</td>
+<td><code>1435002</code>（机构自动签署只允许传账号ID）</td>
+<td>封装层转换：静默签甲方只传 customerId/orgId，不透传 orgSignerInfo</td>
+</tr>
+<tr>
+<td>印章无跨企业授权</td>
+<td>—</td>
+<td>回退默认章；上线前需完成主体印章授权配置并纳入验收</td>
+</tr>
+<tr>
+<td>渠道超时/服务异常</td>
+<td>—</td>
+<td>提示「签署服务暂不可用，请稍后重试」，bizNo 不变重试幂等</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
