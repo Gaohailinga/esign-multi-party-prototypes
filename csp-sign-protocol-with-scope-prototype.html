@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSP 入网签署协议含五省二市选择 - 高保真原型</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      font-size: 14px;
+    }
+
+    /* 顶部栏 */
+    .top-bar {
+      background: #fff;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .top-bar .welcome { font-size: 16px; font-weight: 500; color: #333; }
+    .top-bar .manager { font-size: 14px; color: #666; }
+
+    /* 主容器 */
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 4px;
+      padding: 40px 50px 50px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    /* 步骤条 */
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 50px;
+      padding: 0 60px;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      flex: 1;
+    }
+    .step-item:last-child { flex: 0 0 auto; }
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      margin-bottom: 8px;
+      z-index: 2;
+    }
+    .step-item.done .step-circle {
+      background: #1890ff;
+      color: #fff;
+      border: 1px solid #1890ff;
+    }
+    .step-item.active .step-circle {
+      background: #1890ff;
+      color: #fff;
+      border: 1px solid #1890ff;
+    }
+    .step-item.pending .step-circle {
+      background: #fff;
+      color: #999;
+      border: 1px solid #d9d9d9;
+    }
+    .step-label {
+      font-size: 13px;
+      color: #666;
+    }
+    .step-item.done .step-label,
+    .step-item.active .step-label { color: #1890ff; }
+    .step-line {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      width: calc(100% - 32px);
+      height: 1px;
+      background: #e8e8e8;
+      z-index: 1;
+    }
+    .step-item.done .step-line { background: #1890ff; }
+
+    /* 页面标题 */
+    .page-title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 24px;
+    }
+
+    /* 协议链接 */
+    .protocol-bar {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+      color: #666;
+    }
+    .protocol-bar a {
+      color: #1890ff;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+    .protocol-bar a:hover { text-decoration: underline; }
+    .protocol-bar .status {
+      color: #999;
+      margin-left: 4px;
+    }
+
+    /* 展业范围选择区 */
+    .scope-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+      padding: 16px 20px;
+      background: #fafafa;
+      border: 1px dashed #d9d9d9;
+      border-radius: 4px;
+    }
+    .scope-section .label {
+      font-weight: 500;
+      color: #333;
+      margin-right: 24px;
+    }
+    .scope-section .label .required {
+      color: #ff4d4f;
+      margin-right: 4px;
+    }
+    .scope-section .options {
+      display: flex;
+      gap: 32px;
+    }
+    .scope-section .option {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      color: #555;
+    }
+    .scope-section .option input {
+      margin-right: 6px;
+      cursor: pointer;
+    }
+    .scope-section.hidden { display: none; }
+
+    /* 模拟入口：BD 审核节点 */
+    .mock-entry {
+      margin-bottom: 24px;
+      padding: 14px 20px;
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .mock-entry .label {
+      font-weight: 500;
+      color: #333;
+    }
+    .mock-entry .options {
+      display: flex;
+      gap: 16px;
+    }
+    .mock-entry .option {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      color: #555;
+    }
+    .mock-entry .option input {
+      margin-right: 4px;
+      cursor: pointer;
+    }
+
+    /* 费率卡片 */
+    .rate-card {
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    .rate-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 18px 0;
+      border-bottom: 1px solid #e8e8e8;
+      background: #fff;
+    }
+    .rate-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+    .rate-table th {
+      background: #fafafa;
+      color: #666;
+      font-weight: 500;
+      padding: 12px 8px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .rate-table td {
+      padding: 14px 8px;
+      border-bottom: 1px solid #e8e8e8;
+      color: #333;
+    }
+    .rate-table tr:last-child td { border-bottom: none; }
+    .rate-table .pay-type {
+      width: 130px;
+      color: #333;
+      font-weight: 500;
+    }
+    .rate-table .mode { color: #666; }
+
+    /* 按钮区 */
+    .btn-area {
+      text-align: center;
+    }
+    .error-tip {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: #ff4d4f;
+      font-size: 13px;
+    }
+    .error-tip.show { display: flex; }
+    .error-tip .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ff4d4f;
+      color: #fff;
+      font-size: 11px;
+      font-style: normal;
+    }
+    .btn-primary {
+      display: inline-block;
+      min-width: 160px;
+      height: 44px;
+      line-height: 44px;
+      padding: 0 32px;
+      background: #1890ff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #40a9ff; }
+    .btn-primary:active { background: #096dd9; }
+
+    /* 弹窗 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff;
+      width: 520px;
+      max-width: 90%;
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      overflow: hidden;
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+    }
+    .modal-body {
+      padding: 24px;
+      color: #555;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+    .modal-body p { margin-bottom: 12px; }
+    .modal-body p:last-child { margin-bottom: 0; }
+    .modal-footer {
+      padding: 12px 24px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .btn-default {
+      min-width: 88px;
+      height: 36px;
+      padding: 0 16px;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      color: #555;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-default:hover { border-color: #1890ff; color: #1890ff; }
+    .btn-confirm {
+      min-width: 120px;
+      height: 36px;
+      padding: 0 16px;
+      background: #1890ff;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-confirm:hover { background: #40a9ff; }
+  </style>
+</head>
+<body>
+
+  <header class="top-bar">
+    <div class="welcome">欢迎加入天阙会生活！</div>
+    <div class="manager">您的合作经理：测试-BD1</div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <!-- 步骤条 -->
+      <div class="steps">
+        <div class="step-item done">
+          <div class="step-circle">✓</div>
+          <div class="step-label">注册账号</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-item done">
+          <div class="step-circle">✓</div>
+          <div class="step-label">填写资料</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-item done">
+          <div class="step-circle">✓</div>
+          <div class="step-label">信息审核</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-item active">
+          <div class="step-circle">4</div>
+          <div class="step-label">签署协议</div>
+        </div>
+      </div>
+
+      <!-- 标题 -->
+      <div class="page-title">签署协议——线上电子签约，完成后可下载电子协议，快速方便</div>
+
+      <!-- 模拟入口：掌中宝 BD 审核节点签约主体 -->
+      <div class="mock-entry" id="mock-entry">
+        <div class="label">模拟：掌中宝 BD 审核节点签约主体</div>
+        <div class="options">
+          <label class="option">
+            <input type="radio" name="bd-subject" value="suixingfu" id="bd-suixingfu" checked>
+            随行付（00）
+          </label>
+          <label class="option">
+            <input type="radio" name="bd-subject" value="tianque" id="bd-tianque">
+            天阙（01）
+          </label>
+        </div>
+      </div>
+
+      <!-- 协议链接 -->
+      <div class="protocol-bar">
+        <a href="#">《合作服务协议》</a><span class="status">未签署</span>
+        <a href="#">《补充协议》</a><span class="status">未签署</span>
+      </div>
+
+      <!-- 展业范围选择 -->
+      <div class="scope-section" id="scope-section">
+        <div class="label"><span class="required">*</span>展业范围是否含五省二市</div>
+        <div class="options">
+          <label class="option">
+            <input type="radio" name="scope-five" value="yes" id="scope-yes">
+            是
+          </label>
+          <label class="option">
+            <input type="radio" name="scope-five" value="no" id="scope-no">
+            否
+          </label>
+        </div>
+      </div>
+
+      <!-- 费率表 -->
+      <div class="rate-card">
+        <div class="rate-title">请确认以下费率信息并完成签约</div>
+        <table class="rate-table">
+          <thead>
+            <tr>
+              <th>支付类型</th>
+              <th>费率模式</th>
+              <th>借记卡</th>
+              <th>借记卡封顶</th>
+              <th>贷记卡</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pay-type" rowspan="2">微信支付</td>
+              <td class="mode">扫码、公众号、小程序支付(线下)</td>
+              <td>0.23%</td>
+              <td>/</td>
+              <td>0.23%</td>
+            </tr>
+            <tr>
+              <td class="mode">公众号、小程序支付(线上)</td>
+              <td>0.65%</td>
+              <td>/</td>
+              <td>0.65%</td>
+            </tr>
+            <tr>
+              <td class="pay-type" rowspan="2">支付宝支付</td>
+              <td class="mode">扫码、服务窗（线下）支付</td>
+              <td>0.23%</td>
+              <td>/</td>
+              <td>0.23%</td>
+            </tr>
+            <tr>
+              <td class="mode">服务窗（线上）支付</td>
+              <td>0.65%</td>
+              <td>/</td>
+              <td>0.65%</td>
+            </tr>
+            <tr>
+              <td class="pay-type" rowspan="2">银联二维码</td>
+              <td class="mode">1000 元以下(含)</td>
+              <td>0.23%</td>
+              <td>/</td>
+              <td>0.23%</td>
+            </tr>
+            <tr>
+              <td class="mode">1000 元以上</td>
+              <td>0.23%</td>
+              <td>/</td>
+              <td>0.535%</td>
+            </tr>
+            <tr>
+              <td class="pay-type">刷卡</td>
+              <td class="mode">—</td>
+              <td>0.435%</td>
+              <td>18.75元/笔</td>
+              <td>0.535%</td>
+            </tr>
+            <tr>
+              <td class="pay-type">手机闪付</td>
+              <td class="mode">—</td>
+              <td>0.435%</td>
+              <td>/</td>
+              <td>0.535%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 按钮 -->
+      <div class="btn-area">
+        <div class="error-tip" id="error-tip"><i class="icon">!</i>请先选择“展业范围是否含五省二市”后再进行签约</div>
+        <button class="btn-primary" id="btn-sign">立即签约</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- 弹窗 -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">合作协议签署提醒</div>
+      <div class="modal-body">
+        <p>尊敬的合作伙伴：</p>
+        <p>若您将在五省二市【黑龙江、吉林、辽宁、浙江、福建（厦门除外）地区】作业，为完善上述地区商户支付能力，明确双方权责、保障贵机构合法权益，您在与随行付支付有限公司签约的同时，需同步与北京天阙科技有限公司签署合作协议。</p>
+        <p>请点击确认前往签署。期待与您开展新的合作篇章，大展宏图，感谢您一直以来的理解与支持！</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-default" id="btn-cancel">取消</button>
+        <button class="btn-confirm" id="btn-confirm">确认并前往签约</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const btnSign = document.getElementById('btn-sign');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const btnCancel = document.getElementById('btn-cancel');
+    const btnConfirm = document.getElementById('btn-confirm');
+    const scopeSection = document.getElementById('scope-section');
+    const scopeRadios = document.getElementsByName('scope-five');
+    const bdSubjectRadios = document.getElementsByName('bd-subject');
+    const errorTip = document.getElementById('error-tip');
+
+    function getScopeValue() {
+      for (const radio of scopeRadios) {
+        if (radio.checked) return radio.value;
+      }
+      return null;
+    }
+
+    function getBdSubjectValue() {
+      for (const radio of bdSubjectRadios) {
+        if (radio.checked) return radio.value;
+      }
+      return 'suixingfu';
+    }
+
+    function resetScopeSelection() {
+      for (const radio of scopeRadios) {
+        radio.checked = false;
+      }
+      hideError();
+    }
+
+    function hideError() {
+      errorTip.classList.remove('show');
+      scopeSection.classList.remove('error');
+    }
+
+    function showError() {
+      errorTip.classList.add('show');
+      scopeSection.classList.add('error');
+      void scopeSection.offsetWidth;
+    }
+
+    function updateScopeSectionVisibility() {
+      const subject = getBdSubjectValue();
+      if (subject === 'tianque') {
+        scopeSection.classList.add('hidden');
+        resetScopeSelection();
+      } else {
+        scopeSection.classList.remove('hidden');
+      }
+    }
+
+    for (const radio of scopeRadios) {
+      radio.addEventListener('change', hideError);
+    }
+
+    for (const radio of bdSubjectRadios) {
+      radio.addEventListener('change', function() {
+        updateScopeSectionVisibility();
+      });
+    }
+
+    btnSign.addEventListener('click', function() {
+      const subject = getBdSubjectValue();
+
+      // 天阙：不展示五省二市选择，直接跳转封装层
+      if (subject === 'tianque') {
+        alert('将跳转单主体（天阙）协议签署页面…');
+        return;
+      }
+
+      // 随行付：校验五省二市选择
+      const scope = getScopeValue();
+      if (!scope) {
+        showError();
+        return;
+      }
+      if (scope === 'yes') {
+        modalOverlay.classList.add('show');
+      } else {
+        alert('将跳转单主体（随行付）协议签署页面…');
+      }
+    });
+
+    btnCancel.addEventListener('click', function() {
+      modalOverlay.classList.remove('show');
+    });
+
+    btnConfirm.addEventListener('click', function() {
+      // 实际业务：跳转双主体电子签章签署链接
+      alert('即将跳转双主体电子签章签署页面…');
+      modalOverlay.classList.remove('show');
+    });
+
+    modalOverlay.addEventListener('click', function(e) {
+      if (e.target === modalOverlay) {
+        modalOverlay.classList.remove('show');
+      }
+    });
+
+    updateScopeSectionVisibility();
+  </script>
+
+</body>
+</html>
