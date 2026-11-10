@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CSP 入网签署协议页 - 高保真原型</title>
+  <title>CSP 入网签署协议页0不含五省二市选择 - 高保真原型</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -125,74 +125,6 @@
       margin-left: 4px;
     }
 
-    /* 展业范围选择区 */
-    .scope-section {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 30px;
-      padding: 16px 20px;
-      background: #fafafa;
-      border: 1px dashed #d9d9d9;
-      border-radius: 4px;
-    }
-    .scope-section .label {
-      font-weight: 500;
-      color: #333;
-      margin-right: 24px;
-    }
-    .scope-section .label .required {
-      color: #ff4d4f;
-      margin-right: 4px;
-    }
-    .scope-section .options {
-      display: flex;
-      gap: 32px;
-    }
-    .scope-section .option {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #555;
-    }
-    .scope-section .option input {
-      margin-right: 6px;
-      cursor: pointer;
-    }
-    .scope-section.hidden { display: none; }
-
-    /* 模拟入口：BD 审核节点 */
-    .mock-entry {
-      margin-bottom: 24px;
-      padding: 14px 20px;
-      background: #f6ffed;
-      border: 1px solid #b7eb8f;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .mock-entry .label {
-      font-weight: 500;
-      color: #333;
-    }
-    .mock-entry .options {
-      display: flex;
-      gap: 16px;
-    }
-    .mock-entry .option {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #555;
-    }
-    .mock-entry .option input {
-      margin-right: 4px;
-      cursor: pointer;
-    }
-
     /* 费率卡片 */
     .rate-card {
       border: 1px solid #e8e8e8;
@@ -236,28 +168,6 @@
     /* 按钮区 */
     .btn-area {
       text-align: center;
-    }
-    .error-tip {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 12px;
-      color: #ff4d4f;
-      font-size: 13px;
-    }
-    .error-tip.show { display: flex; }
-    .error-tip .icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #ff4d4f;
-      color: #fff;
-      font-size: 11px;
-      font-style: normal;
     }
     .btn-primary {
       display: inline-block;
@@ -380,42 +290,12 @@
       </div>
 
       <!-- 标题 -->
-      <div class="page-title">签署协议——线上电子签约，完成后可下载电子协议，快速方便</div>
-
-      <!-- 模拟入口：掌中宝 BD 审核节点签约主体 -->
-      <div class="mock-entry" id="mock-entry">
-        <div class="label">模拟：掌中宝 BD 审核节点签约主体</div>
-        <div class="options">
-          <label class="option">
-            <input type="radio" name="bd-subject" value="suixingfu" id="bd-suixingfu" checked>
-            随行付（00）
-          </label>
-          <label class="option">
-            <input type="radio" name="bd-subject" value="tianque" id="bd-tianque">
-            天阙（01）
-          </label>
-        </div>
-      </div>
+      <div class="page-title">签约信息确认——线上电子签约，完成后可下载电子协议，快速方便</div>
 
       <!-- 协议链接 -->
       <div class="protocol-bar">
         <a href="#">《合作服务协议》</a><span class="status">未签署</span>
         <a href="#">《补充协议》</a><span class="status">未签署</span>
-      </div>
-
-      <!-- 展业范围选择 -->
-      <div class="scope-section" id="scope-section">
-        <div class="label"><span class="required">*</span>展业范围是否含五省二市</div>
-        <div class="options">
-          <label class="option">
-            <input type="radio" name="scope-five" value="yes" id="scope-yes">
-            是
-          </label>
-          <label class="option">
-            <input type="radio" name="scope-five" value="no" id="scope-no">
-            否
-          </label>
-        </div>
       </div>
 
       <!-- 费率表 -->
@@ -491,7 +371,6 @@
 
       <!-- 按钮 -->
       <div class="btn-area">
-        <div class="error-tip" id="error-tip"><i class="icon">!</i>请先选择“展业范围是否含五省二市”后再进行签约</div>
         <button class="btn-primary" id="btn-sign">立即签约</button>
       </div>
     </div>
@@ -518,83 +397,9 @@
     const modalOverlay = document.getElementById('modal-overlay');
     const btnCancel = document.getElementById('btn-cancel');
     const btnConfirm = document.getElementById('btn-confirm');
-    const scopeSection = document.getElementById('scope-section');
-    const scopeRadios = document.getElementsByName('scope-five');
-    const bdSubjectRadios = document.getElementsByName('bd-subject');
-    const errorTip = document.getElementById('error-tip');
-
-    function getScopeValue() {
-      for (const radio of scopeRadios) {
-        if (radio.checked) return radio.value;
-      }
-      return null;
-    }
-
-    function getBdSubjectValue() {
-      for (const radio of bdSubjectRadios) {
-        if (radio.checked) return radio.value;
-      }
-      return 'suixingfu';
-    }
-
-    function resetScopeSelection() {
-      for (const radio of scopeRadios) {
-        radio.checked = false;
-      }
-      hideError();
-    }
-
-    function hideError() {
-      errorTip.classList.remove('show');
-      scopeSection.classList.remove('error');
-    }
-
-    function showError() {
-      errorTip.classList.add('show');
-      scopeSection.classList.add('error');
-      void scopeSection.offsetWidth;
-    }
-
-    function updateScopeSectionVisibility() {
-      const subject = getBdSubjectValue();
-      if (subject === 'tianque') {
-        scopeSection.classList.add('hidden');
-        resetScopeSelection();
-      } else {
-        scopeSection.classList.remove('hidden');
-      }
-    }
-
-    for (const radio of scopeRadios) {
-      radio.addEventListener('change', hideError);
-    }
-
-    for (const radio of bdSubjectRadios) {
-      radio.addEventListener('change', function() {
-        updateScopeSectionVisibility();
-      });
-    }
 
     btnSign.addEventListener('click', function() {
-      const subject = getBdSubjectValue();
-
-      // 天阙：不展示五省二市选择，直接跳转封装层
-      if (subject === 'tianque') {
-        alert('将跳转单主体（天阙）协议签署页面…');
-        return;
-      }
-
-      // 随行付：校验五省二市选择
-      const scope = getScopeValue();
-      if (!scope) {
-        showError();
-        return;
-      }
-      if (scope === 'yes') {
-        modalOverlay.classList.add('show');
-      } else {
-        alert('将跳转单主体（随行付）协议签署页面…');
-      }
+      modalOverlay.classList.add('show');
     });
 
     btnCancel.addEventListener('click', function() {
@@ -602,8 +407,8 @@
     });
 
     btnConfirm.addEventListener('click', function() {
-      // 实际业务：跳转双主体电子签章签署链接
-      alert('即将跳转双主体电子签章签署页面…');
+      // 实际业务：跳转电子签章签署链接
+      alert('即将跳转电子签章签署页面…');
       modalOverlay.classList.remove('show');
     });
 
@@ -612,8 +417,6 @@
         modalOverlay.classList.remove('show');
       }
     });
-
-    updateScopeSectionVisibility();
   </script>
 
 </body>
