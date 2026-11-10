@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CSP 入网签署协议页0不含五省二市选择 - 高保真原型</title>
+  <title>CSP 入网签署协议-不含五省二市选择 - 高保真原型</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -125,6 +125,38 @@
       margin-left: 4px;
     }
 
+    /* 模拟入口：BD 审核节点 */
+    .mock-entry {
+      margin-bottom: 24px;
+      padding: 14px 20px;
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .mock-entry .label {
+      font-weight: 500;
+      color: #333;
+    }
+    .mock-entry .options {
+      display: flex;
+      gap: 16px;
+    }
+    .mock-entry .option {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      color: #555;
+    }
+    .mock-entry .option input {
+      margin-right: 4px;
+      cursor: pointer;
+    }
+
     /* 费率卡片 */
     .rate-card {
       border: 1px solid #e8e8e8;
@@ -168,6 +200,28 @@
     /* 按钮区 */
     .btn-area {
       text-align: center;
+    }
+    .error-tip {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: #ff4d4f;
+      font-size: 13px;
+    }
+    .error-tip.show { display: flex; }
+    .error-tip .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ff4d4f;
+      color: #fff;
+      font-size: 11px;
+      font-style: normal;
     }
     .btn-primary {
       display: inline-block;
@@ -290,7 +344,22 @@
       </div>
 
       <!-- 标题 -->
-      <div class="page-title">签约信息确认——线上电子签约，完成后可下载电子协议，快速方便</div>
+      <div class="page-title">签署协议——线上电子签约，完成后可下载电子协议，快速方便</div>
+
+      <!-- 模拟入口：掌中宝 BD 审核节点签约主体 -->
+      <div class="mock-entry" id="mock-entry">
+        <div class="label">模拟：掌中宝 BD 审核节点签约主体</div>
+        <div class="options">
+          <label class="option">
+            <input type="radio" name="bd-subject" value="suixingfu" id="bd-suixingfu" checked>
+            随行付（00）
+          </label>
+          <label class="option">
+            <input type="radio" name="bd-subject" value="tianque" id="bd-tianque">
+            天阙（01）
+          </label>
+        </div>
+      </div>
 
       <!-- 协议链接 -->
       <div class="protocol-bar">
@@ -397,8 +466,25 @@
     const modalOverlay = document.getElementById('modal-overlay');
     const btnCancel = document.getElementById('btn-cancel');
     const btnConfirm = document.getElementById('btn-confirm');
+    const bdSubjectRadios = document.getElementsByName('bd-subject');
+
+    function getBdSubjectValue() {
+      for (const radio of bdSubjectRadios) {
+        if (radio.checked) return radio.value;
+      }
+      return 'suixingfu';
+    }
 
     btnSign.addEventListener('click', function() {
+      const subject = getBdSubjectValue();
+
+      // 天阙：直接跳转单主体封装层
+      if (subject === 'tianque') {
+        alert('将跳转单主体（天阙）协议签署页面…');
+        return;
+      }
+
+      // 随行付：提醒双主体签署
       modalOverlay.classList.add('show');
     });
 
@@ -407,8 +493,8 @@
     });
 
     btnConfirm.addEventListener('click', function() {
-      // 实际业务：跳转电子签章签署链接
-      alert('即将跳转电子签章签署页面…');
+      // 实际业务：跳转双主体电子签章签署链接
+      alert('即将跳转双主体电子签章签署页面…');
       modalOverlay.classList.remove('show');
     });
 
