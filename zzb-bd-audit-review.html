@@ -193,12 +193,28 @@
     .annot-dim::before { border-right-color: rgba(0,0,0,0.6); }
     .annot-highlight { border: 2px solid #fa8c16; }
     .annot-highlight::before { border-right-color: #fa8c16; }
+    .reset-annot {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 8px 14px;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #333;
+      cursor: pointer;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .reset-annot:hover { color: #1890ff; border-color: #1890ff; }
     @media (max-width: 900px) {
-      .annot-layer { display: none; }
+      .annot-layer, .reset-annot { display: none; }
     }
   </style>
 </head>
 <body>
+  <button class="reset-annot" onclick="resetAllAnnots()">重置标注位置</button>
   <div class="demo-stage">
     <div class="mobile-wrap">
       <div class="notch"></div>
@@ -370,6 +386,8 @@
       const annots = document.querySelectorAll('.annot');
       let dragging = null, startX, startY, startLeft, startTop;
 
+      const defaultTops = { 'subject': 200, 'scope': 360, 'tip': 520, 'submit': 640 };
+
       annots.forEach(annot => {
         const saved = localStorage.getItem('annot-pos-' + annot.dataset.annotId);
         if (saved) {
@@ -387,7 +405,23 @@
           annot.classList.add('dragging');
           e.preventDefault();
         });
+
+        annot.addEventListener('dblclick', function() {
+          const id = annot.dataset.annotId;
+          annot.style.top = defaultTops[id] + 'px';
+          annot.style.left = '';
+          localStorage.removeItem('annot-pos-' + id);
+        });
       });
+
+      window.resetAllAnnots = function() {
+        annots.forEach(annot => {
+          const id = annot.dataset.annotId;
+          annot.style.top = defaultTops[id] + 'px';
+          annot.style.left = '';
+          localStorage.removeItem('annot-pos-' + id);
+        });
+      };
 
       document.addEventListener('mousemove', function(e) {
         if (!dragging) return;
