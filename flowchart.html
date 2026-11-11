@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>机构入网双主体签署 - 流程图与时序图</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 40px;
+    }
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    .section h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+    .note {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      border-radius: 4px;
+      color: #389e0d;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>机构入网双主体签署</h1>
+    <div class="subtitle">流程图与时序图 · 推荐方案三（掌中宝 BD 审核节点触发）</div>
+
+    <div class="section">
+      <h2>主流程图</h2>
+      <div class="mermaid">
+flowchart TD
+    A[机构在 CSP 填写入网资料] --> B[资料提交至掌中宝 BD 审核]
+    B --> C{BD 选择签约主体}
+    C -->|天阙 01| D[生成天阙单主体协议]
+    C -->|随行付 00| E{是否含五省二市}
+    E -->|否| F[生成随行付单主体协议]
+    E -->|是| G[生成随行付+天阙双主体协议]
+    D --> H[机构进入 CSP 电子签约页]
+    F --> H
+    G --> H
+    H --> I{签约主体=随行付且含五省二市}
+    I -->|是| J[展示双主体确认弹窗]
+    I -->|否| K[直接跳转封装层签约]
+    J -->|确认| K
+    J -->|取消| L[取消五省二市选择并停留在签约页]
+    K --> M[机构完成多份协议签署]
+    M --> N[回调通知业务系统]
+      </div>
+      <div class="note">说明：掌中宝 BD 审核节点一次性确认「签约主体」与「是否含五省二市」，CSP 电子签约页按结果渲染。</div>
+    </div>
+
+    <div class="section">
+      <h2>时序图</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant 机构 as 机构
+    participant CSP as CSP 入网页
+    participant 掌中宝 as 掌中宝 BD 审核页
+    participant 封装层 as 电子签章封装层
+    participant 签章服务 as 签章服务
+
+    机构->>CSP: 填写入网资料并提交
+    CSP->>掌中宝: 推送待审核工单
+    掌中宝->>掌中宝: BD 选择签约主体=随行付<br/>并确认是否含五省二市=是
+    掌中宝->>CSP: 回写审核结果（签约主体+五省二市标识）
+    机构->>CSP: 进入电子签约页
+    CSP->>CSP: 渲染随行付+五省二市单选
+    机构->>CSP: 选择「是」并点击立即签约
+    CSP->>CSP: 弹双主体确认窗
+    机构->>CSP: 点击确认并前往签约
+    CSP->>封装层: 创建签约（双主体+多文件）
+    封装层->>签章服务: 发起签署流程
+    签章服务-->>封装层: 返回签署链接
+    封装层-->>CSP: 返回签署链接
+    CSP->>机构: 跳转签署页面
+    机构->>签章服务: 完成多份协议签署
+    签章服务-->>封装层: 签署状态回调
+    封装层-->>CSP: 通知业务系统
+      </div>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      },
+      sequence: {
+        useMaxWidth: true,
+        wrap: true
+      }
+    });
+  </script>
+</body>
+</html>

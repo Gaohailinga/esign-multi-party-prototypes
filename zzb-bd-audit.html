@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BD 审核 - 掌中宝</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #d0d0d0;
+      color: #333;
+      font-size: 15px;
+    }
+    .mobile-wrap {
+      max-width: 375px;
+      margin: 20px auto;
+      min-height: calc(100vh - 40px);
+      background: #f5f5f5;
+      border-radius: 36px;
+      border: 8px solid #f0f0f0;
+      box-shadow: 0 0 0 1px #d9d9d9, 0 20px 50px rgba(0,0,0,0.22);
+      overflow: hidden;
+      position: relative;
+      padding-bottom: 24px;
+    }
+    .status-bar {
+      height: 28px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      font-size: 12px;
+      color: #000;
+      position: relative;
+      z-index: 2;
+    }
+    .status-bar .time { font-weight: 600; }
+    .status-bar .icons { display: flex; align-items: center; gap: 4px; }
+    .status-bar .signal { display: flex; align-items: flex-end; gap: 2px; height: 10px; }
+    .status-bar .signal span { width: 3px; background: #000; border-radius: 1px; }
+    .status-bar .signal span:nth-child(1) { height: 4px; }
+    .status-bar .signal span:nth-child(2) { height: 6px; }
+    .status-bar .signal span:nth-child(3) { height: 8px; }
+    .status-bar .signal span:nth-child(4) { height: 10px; }
+    .status-bar .battery { width: 18px; height: 8px; border: 1px solid #000; border-radius: 2px; position: relative; margin-left: 2px; }
+    .status-bar .battery::before { content: ''; position: absolute; left: 1px; top: 1px; bottom: 1px; width: 70%; background: #000; border-radius: 1px; }
+    .status-bar .battery::after { content: ''; position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background: #000; border-radius: 0 1px 1px 0; }
+    .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 22px; background: #1a1a1a; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 10; }
+    .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 110px; height: 4px; background: #1a1a1a; border-radius: 2px; z-index: 10; }
+    .nav-bar {
+      height: 48px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      position: relative;
+      z-index: 2;
+    }
+    .nav-bar .back { color: #333; font-size: 20px; cursor: pointer; }
+    .nav-bar .title { font-size: 17px; font-weight: 500; color: #1a1a1a; }
+    .nav-bar .submit { color: #1890ff; font-size: 15px; cursor: pointer; }
+    .content { padding: 16px; padding-bottom: 80px; }
+    .section-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .section-title { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 12px; }
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: #666; }
+    .info-row .value { color: #333; font-weight: 500; }
+    .radio-group { display: flex; flex-direction: column; gap: 12px; }
+    .radio-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 12px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      background: #fafafa;
+      cursor: pointer;
+    }
+    .radio-item.active { border-color: #1890ff; background: #e6f7ff; }
+    .radio-left { display: flex; align-items: center; gap: 10px; }
+    .radio-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d9d9d9; position: relative; }
+    .radio-item.active .radio-dot { border-color: #1890ff; }
+    .radio-item.active .radio-dot::after { content: ''; position: absolute; width: 10px; height: 10px; background: #1890ff; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .radio-label { font-size: 15px; color: #333; }
+    .radio-tag { font-size: 12px; color: #999; }
+    .tip-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px;
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #d48806;
+      line-height: 1.5;
+    }
+    .tip-box .icon { flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; border: 1px solid #d48806; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .bottom-btn {
+      position: absolute;
+      bottom: 24px;
+      left: 16px;
+      right: 16px;
+      height: 48px;
+      background: #1890ff;
+      color: #fff;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      z-index: 5;
+    }
+    .modal-mask {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+    }
+    .modal-mask.show { display: flex; }
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      width: 100%;
+      padding: 20px;
+    }
+    .modal-title { font-size: 16px; font-weight: 500; text-align: center; margin-bottom: 16px; }
+    .modal-body { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 20px; }
+    .modal-body .highlight { color: #1890ff; font-weight: 500; }
+    .modal-btns { display: flex; gap: 12px; }
+    .modal-btn { flex: 1; height: 42px; border-radius: 21px; border: 1px solid #d9d9d9; background: #fff; color: #333; font-size: 15px; cursor: pointer; }
+    .modal-btn.primary { background: #1890ff; color: #fff; border-color: #1890ff; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="mobile-wrap">
+    <div class="notch"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <div class="signal"><span></span><span></span><span></span><span></span></div>
+        <div class="battery"></div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <span class="back">‹</span>
+      <span class="title">机构审核</span>
+      <span class="submit" onclick="showConfirm()">提交</span>
+    </div>
+
+    <div class="content">
+      <div class="section-card">
+        <div class="section-title">机构信息</div>
+        <div class="info-row"><span class="label">机构名称</span><span class="value">北京某某科技有限公司</span></div>
+        <div class="info-row"><span class="label">统一社会信用代码</span><span class="value">91110108MA00XXXXXX</span></div>
+        <div class="info-row"><span class="label">申请时间</span><span class="value">2026-11-11</span></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">签约主体</div>
+        <div class="radio-group">
+          <div class="radio-item" data-subject="00" onclick="selectSubject(this)">
+            <div class="radio-left">
+              <div class="radio-dot"></div>
+              <span class="radio-label">随行付支付有限公司</span>
+            </div>
+            <span class="radio-tag">00</span>
+          </div>
+          <div class="radio-item" data-subject="01" onclick="selectSubject(this)">
+            <div class="radio-left">
+              <div class="radio-dot"></div>
+              <span class="radio-label">北京天阙科技有限公司</span>
+            </div>
+            <span class="radio-tag">01</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card hidden" id="scope-card">
+        <div class="section-title">展业范围是否含五省二市</div>
+        <div class="radio-group">
+          <div class="radio-item" data-scope="yes" onclick="selectScope(this)">
+            <div class="radio-left">
+              <div class="radio-dot"></div>
+              <span class="radio-label">是</span>
+            </div>
+          </div>
+          <div class="radio-item" data-scope="no" onclick="selectScope(this)">
+            <div class="radio-left">
+              <div class="radio-dot"></div>
+              <span class="radio-label">否</span>
+            </div>
+          </div>
+        </div>
+        <div class="tip-box">
+          <span class="icon">!</span>
+          <span>五省二市指：黑龙江、吉林、辽宁、浙江、福建（厦门除外）地区。若含上述区域，需同时签署随行付、天阙两份主体协议。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-btn" onclick="showConfirm()">提交审核</div>
+    <div class="home-indicator"></div>
+
+    <div class="modal-mask" id="confirm-modal">
+      <div class="modal-content">
+        <div class="modal-title">确认审核结果</div>
+        <div class="modal-body">
+          <p>签约主体：<span class="highlight" id="confirm-subject">-</span></p>
+          <p id="confirm-scope-line">是否含五省二市：<span class="highlight" id="confirm-scope">-</span></p>
+          <p style="margin-top:8px;color:#999;font-size:12px;">提交后将按所选主体生成协议，请与机构确认无误。</p>
+        </div>
+        <div class="modal-btns">
+          <button class="modal-btn" onclick="hideConfirm()">取消</button>
+          <button class="modal-btn primary" onclick="doSubmit()">确认提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedSubject = null;
+    let selectedScope = null;
+
+    function selectSubject(el) {
+      document.querySelectorAll('[data-subject]').forEach(item => item.classList.remove('active'));
+      el.classList.add('active');
+      selectedSubject = el.getAttribute('data-subject');
+
+      const scopeCard = document.getElementById('scope-card');
+      if (selectedSubject === '00') {
+        scopeCard.classList.remove('hidden');
+      } else {
+        scopeCard.classList.add('hidden');
+        selectedScope = null;
+        document.querySelectorAll('[data-scope]').forEach(item => item.classList.remove('active'));
+      }
+    }
+
+    function selectScope(el) {
+      document.querySelectorAll('[data-scope]').forEach(item => item.classList.remove('active'));
+      el.classList.add('active');
+      selectedScope = el.getAttribute('data-scope');
+    }
+
+    function showConfirm() {
+      if (!selectedSubject) {
+        alert('请选择签约主体');
+        return;
+      }
+      if (selectedSubject === '00' && !selectedScope) {
+        alert('选择随行付时，必须确认机构是否含五省二市作业');
+        return;
+      }
+
+      const subjectMap = { '00': '随行付支付有限公司', '01': '北京天阙科技有限公司' };
+      document.getElementById('confirm-subject').textContent = subjectMap[selectedSubject];
+
+      const scopeLine = document.getElementById('confirm-scope-line');
+      if (selectedSubject === '00') {
+        scopeLine.classList.remove('hidden');
+        document.getElementById('confirm-scope').textContent = selectedScope === 'yes' ? '是' : '否';
+      } else {
+        scopeLine.classList.add('hidden');
+      }
+
+      document.getElementById('confirm-modal').classList.add('show');
+    }
+
+    function hideConfirm() {
+      document.getElementById('confirm-modal').classList.remove('show');
+    }
+
+    function doSubmit() {
+      hideConfirm();
+      alert('审核结果已提交：' + (selectedSubject === '00' ? '随行付' : '天阙') + '，' + (selectedScope === 'yes' ? '含五省二市' : '不含五省二市'));
+    }
+  </script>
+</body>
+</html>
